@@ -1,11 +1,14 @@
 import React, { useEffect } from 'react'
-import { ArrowLeftRight, Clock, Zap } from 'lucide-react'
+import { ArrowLeftRight, Clock } from 'lucide-react'
+import iconSvg from './assets/icon.svg'
 import { useConverterStore } from './store/converterStore'
 import { DropZone } from './components/DropZone'
 import { FileList } from './components/FileList'
 import { ConversionPanel } from './components/ConversionPanel'
 import { Preview } from './components/Preview'
 import { History } from './components/History'
+import { TitleBar } from './components/TitleBar'
+import { ToastContainer } from './components/Toast'
 
 export default function App(): React.ReactElement {
   const view = useConverterStore((s) => s.view)
@@ -13,7 +16,7 @@ export default function App(): React.ReactElement {
   const files = useConverterStore((s) => s.files)
   const setFileProgress = useConverterStore((s) => s.setFileProgress)
   const setFileStatus = useConverterStore((s) => s.setFileStatus)
-  const isConverting = useConverterStore((s) => s.isConverting)
+  const addToast = useConverterStore((s) => s.addToast)
 
   useEffect(() => {
     const unsubProgress = window.api.onConvertProgress(({ fileId, percent }) => {
@@ -29,6 +32,13 @@ export default function App(): React.ReactElement {
       )
       if (allFinished) {
         useConverterStore.setState({ isConverting: false })
+        const hasErrors = state.files.some((f) => f.id === fileId ? !success : f.status === 'error')
+        const allSuccess = !hasErrors && (success || state.files.every((f) => f.id === fileId ? success : f.status === 'done'))
+        if (allSuccess) {
+          addToast('All conversions completed successfully', 'success')
+        } else if (hasErrors) {
+          addToast('Some conversions failed', 'error')
+        }
       }
     })
 
@@ -36,66 +46,74 @@ export default function App(): React.ReactElement {
       unsubProgress()
       unsubDone()
     }
-  }, [setFileProgress, setFileStatus])
+  }, [setFileProgress, setFileStatus, addToast])
 
   return (
-    <div className="flex h-screen bg-bg-primary text-white">
-      {/* Sidebar */}
-      <div className="w-16 flex flex-col items-center py-4 gap-2 border-r border-border bg-bg-secondary">
-        <div className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center mb-4">
-          <Zap size={18} className="text-white" />
-        </div>
-
-        <button
-          onClick={() => setView('converter')}
-          className={`
-            w-10 h-10 rounded-xl flex items-center justify-center transition-all
-            ${view === 'converter' ? 'bg-accent/20 text-accent' : 'text-gray-500 hover:text-gray-300 hover:bg-bg-tertiary'}
-          `}
-          title="Converter"
-        >
-          <ArrowLeftRight size={18} />
-        </button>
-
-        <button
-          onClick={() => setView('history')}
-          className={`
-            w-10 h-10 rounded-xl flex items-center justify-center transition-all
-            ${view === 'history' ? 'bg-accent/20 text-accent' : 'text-gray-500 hover:text-gray-300 hover:bg-bg-tertiary'}
-          `}
-          title="History"
-        >
-          <Clock size={18} />
-        </button>
-      </div>
-
-      {/* Main Content */}
-      {view === 'converter' ? (
-        <>
-          <div className="flex-1 flex flex-col min-w-0">
-            {files.length === 0 ? (
-              <div className="flex-1 p-6">
-                <DropZone />
-              </div>
-            ) : (
-              <FileList />
-            )}
+    <div className="flex flex-col h-screen bg-bg-primary text-white">
+      <TitleBar />
+      <div className="flex flex-1 min-h-0">
+        {/* Sidebar */}
+        <div className="w-[72px] flex flex-col items-center py-4 gap-1 border-r border-border bg-bg-secondary">
+          <div className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center overflow-hidden">
+            <img src={iconSvg} alt="File Converter" className="w-7 h-7" />
           </div>
 
-          {files.length > 0 && (
-            <div className="w-72">
-              <ConversionPanel />
-            </div>
-          )}
-        </>
-      ) : (
-        <div className="flex-1">
-          <History />
-        </div>
-      )}
+          <div className="w-10 border-t border-border my-2" />
 
-      {/* Preview Modal */}
+          <button
+            onClick={() => setView('converter')}
+            className={`
+              w-14 py-2 rounded-xl flex flex-col items-center justify-center gap-1 transition-all
+              ${view === 'converter' ? 'bg-accent/20 text-accent' : 'text-gray-500 hover:text-gray-300 hover:bg-bg-tertiary'}
+            `}
+          >
+            <ArrowLeftRight size={18} />
+            <span className="text-[10px] font-medium">Convert</span>
+          </button>
+
+          <button
+            onClick={() => setView('history')}
+            className={`
+              w-14 py-2 rounded-xl flex flex-col items-center justify-center gap-1 transition-all
+              ${view === 'history' ? 'bg-accent/20 text-accent' : 'text-gray-500 hover:text-gray-300 hover:bg-bg-tertiary'}
+            `}
+          >
+            <Clock size={18} />
+            <span className="text-[10px] font-medium">History</span>
+          </button>
+
+          <div className="flex-1" />
+          <span className="text-[9px] text-gray-600 font-mono">v1.0.0</span>
+        </div>
+
+        {/* Main Content */}
+        {view === 'converter' ? (
+          <>
+            <div className="flex-1 flex flex-col min-w-0">
+              {files.length === 0 ? (
+                <div className="flex-1 p-6">
+                  <DropZone />
+                </div>
+              ) : (
+                <FileList />
+              )}
+            </div>
+
+            {files.length > 0 && (
+              <div className="w-72">
+                <ConversionPanel />
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="flex-1">
+            <History />
+          </div>
+        )}
+      </div>
+
       <Preview />
+      <ToastContainer />
     </div>
   )
 }

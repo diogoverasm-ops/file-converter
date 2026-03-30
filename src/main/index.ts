@@ -1,6 +1,7 @@
-import { app, BrowserWindow, ipcMain, dialog } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog, shell } from 'electron'
 import { join } from 'path'
 import fs from 'fs'
+import fsPromises from 'fs/promises'
 import { convertFile, getPreview } from './converters'
 
 interface HistoryEntry {
@@ -19,24 +20,24 @@ function getHistoryPath(): string {
   return join(app.getPath('userData'), 'history.json')
 }
 
-function loadHistory(): HistoryEntry[] {
+async function loadHistory(): Promise<HistoryEntry[]> {
   try {
-    const data = fs.readFileSync(getHistoryPath(), 'utf-8')
+    const data = await fsPromises.readFile(getHistoryPath(), 'utf-8')
     return JSON.parse(data)
   } catch {
     return []
   }
 }
 
-function saveHistory(history: HistoryEntry[]): void {
-  fs.writeFileSync(getHistoryPath(), JSON.stringify(history, null, 2), 'utf-8')
+async function saveHistory(history: HistoryEntry[]): Promise<void> {
+  await fsPromises.writeFile(getHistoryPath(), JSON.stringify(history, null, 2), 'utf-8')
 }
 
-function addHistoryEntry(entry: HistoryEntry): void {
-  const history = loadHistory()
+async function addHistoryEntry(entry: HistoryEntry): Promise<void> {
+  const history = await loadHistory()
   history.unshift(entry)
   if (history.length > 500) history.length = 500
-  saveHistory(history)
+  await saveHistory(history)
 }
 
 let mainWindow: BrowserWindow | null = null
@@ -48,8 +49,9 @@ function createWindow(): void {
     minWidth: 900,
     minHeight: 600,
     backgroundColor: '#0f0f0f',
+    icon: join(__dirname, '../../resources/icon.png'),
     titleBarStyle: 'hiddenInset',
-    frame: process.platform === 'darwin' ? false : true,
+    frame: false,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
@@ -87,17 +89,17 @@ function setupIpcHandlers(): void {
         {
           name: 'All Supported',
           extensions: [
-            'mp4', 'avi', 'mov', 'mkv', 'webm',
+            'mp4', 'avi', 'mov', 'mkv', 'webm', 'm4v', 'mpeg', 'mpg', 'wmv', 'ts', 'ogv', 'av1', '3gp', 'divx', 'mjpeg', 'vob', 'flv', 'mts', 'mxf', '3g2', 'asf', 'xvid', 'rmvb', 'f4v', 'm2v', 'm2ts', 'rm', 'wtv', 'hevc', 'swf',
             'mp3', 'wav', 'flac', 'aac', 'ogg', 'm4a',
             'png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff', 'webp', 'avif',
             'docx', 'pdf', 'txt', 'html', 'md',
             'csv', 'json', 'xml', 'yaml', 'yml'
           ]
         },
-        { name: 'Video', extensions: ['mp4', 'avi', 'mov', 'mkv', 'webm'] },
-        { name: 'Audio', extensions: ['mp3', 'wav', 'flac', 'aac', 'ogg', 'm4a'] },
-        { name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff', 'webp', 'avif'] },
-        { name: 'Documents', extensions: ['docx', 'pdf', 'txt', 'html', 'md'] },
+        { name: 'Video', extensions: ['mp4', 'avi', 'mov', 'mkv', 'webm', 'm4v', 'mpeg', 'mpg', 'wmv', 'ts', 'ogv', 'av1', '3gp', 'divx', 'mjpeg', 'vob', 'flv', 'mts', 'mxf', '3g2', 'asf', 'xvid', 'rmvb', 'f4v', 'm2v', 'm2ts', 'rm', 'wtv', 'hevc', 'swf'] },
+        { name: 'Audio', extensions: ['mp3', 'wav', 'flac', 'aac', 'ogg', 'm4a', 'm4r', 'wma', 'opus', 'mp2', 'aiff', 'aif', 'amr', '8svx', 'au', 'ac3', 'dts', 'caf', 'oga', 'voc', 'avr', 'wv', 'snd', 'spx', 'amb', 'w64', 'tta', 'gsm', 'cdda', 'cvs', 'vms', 'smp', 'ima', 'hcom', 'vox', 'ra', 'wve', 'cvu', 'txw', 'fap', 'sou', 'cvsd', 'sln', 'prc', 'pvf', 'paf', 'dvms', 'sph', 'sd2', 'maud', 'sndr', 'sndt', 'fssd', 'gsrt', 'htk', 'ircam', 'nist'] },
+        { name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff', 'webp', 'avif', 'heic', 'heif', 'jp2', 'jfif', 'jpe', 'jfi', 'exr', 'xbm', 'xpm', 'pgm', 'ppm', 'pnm', 'pbm', 'pam', 'pcx', 'tga', 'sgi', 'ras', 'sun', 'pict', 'pct', 'pcd', 'pfm', 'xwd', 'mng', 'yuv', 'uyvy', 'rgbo', 'rgba', 'g3', 'g4', 'palm', 'mtv', 'viff', 'xv', 'ipl', 'hrz', 'jps', 'pgx', 'picon', 'wbmp', 'jbg', 'jbig', 'map', 'six', 'sixel', 'fax', 'otb', 'rgf', 'vips', 'fts', 'pal', 'pdb', 'svg', 'ai', 'eps', 'ps', 'plt', 'emf', 'wmf', 'sk', 'fig', 'cgm', 'sk1'] },
+        { name: 'Documents', extensions: ['docx', 'doc', 'docm', 'dotx', 'dotm', 'dot', 'pdf', 'txt', 'html', 'md', 'rtf', 'odt', 'sxw', 'xps', 'djvu', 'aw', 'kwd', 'dbk'] },
         { name: 'Data', extensions: ['csv', 'json', 'xml', 'yaml', 'yml'] },
         { name: 'All Files', extensions: ['*'] }
       ]
@@ -135,7 +137,7 @@ function setupIpcHandlers(): void {
         })
 
         const stats = fs.statSync(file.path)
-        addHistoryEntry({
+        await addHistoryEntry({
           id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           inputFile: file.path,
           inputFormat: file.name.split('.').pop() || '',
@@ -155,7 +157,7 @@ function setupIpcHandlers(): void {
         const errorMsg = err instanceof Error ? err.message : 'Unknown error'
 
         const stats = fs.existsSync(file.path) ? fs.statSync(file.path) : { size: 0 }
-        addHistoryEntry({
+        await addHistoryEntry({
           id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           inputFile: file.path,
           inputFormat: file.name.split('.').pop() || '',
@@ -182,10 +184,45 @@ function setupIpcHandlers(): void {
   })
 
   ipcMain.handle('history:clear', async () => {
-    saveHistory([])
+    await saveHistory([])
   })
 
   ipcMain.handle('preview:get', async (_event, filePath: string) => {
     return getPreview(filePath)
+  })
+
+  ipcMain.handle('files:getStats', async (_event, paths: string[]) => {
+    return paths.map((p) => {
+      try {
+        const stats = fs.statSync(p)
+        return { path: p, size: stats.size }
+      } catch {
+        return { path: p, size: 0 }
+      }
+    })
+  })
+
+  ipcMain.handle('shell:openFile', async (_event, filePath: string) => {
+    await shell.openPath(filePath)
+  })
+
+  ipcMain.handle('shell:showInFolder', async (_event, filePath: string) => {
+    shell.showItemInFolder(filePath)
+  })
+
+  ipcMain.handle('window:minimize', () => {
+    mainWindow?.minimize()
+  })
+
+  ipcMain.handle('window:maximize', () => {
+    if (mainWindow?.isMaximized()) {
+      mainWindow.unmaximize()
+    } else {
+      mainWindow?.maximize()
+    }
+  })
+
+  ipcMain.handle('window:close', () => {
+    mainWindow?.close()
   })
 }

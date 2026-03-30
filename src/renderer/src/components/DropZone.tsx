@@ -2,20 +2,33 @@ import React, { useState, useCallback } from 'react'
 import { Upload, FolderOpen } from 'lucide-react'
 import { useConverterStore } from '../store/converterStore'
 
+const FORMAT_EXAMPLES: Record<string, string> = {
+  Video: 'MP4, AVI, MKV, MOV, WebM',
+  Audio: 'MP3, WAV, FLAC, AAC, OGG',
+  Images: 'PNG, JPG, WebP, GIF, AVIF',
+  Documents: 'PDF, DOCX, TXT, HTML, MD',
+  Data: 'CSV, JSON, XML, YAML'
+}
+
 export function DropZone(): React.ReactElement {
   const [isDragging, setIsDragging] = useState(false)
+  const [dragCount, setDragCount] = useState(0)
   const addFiles = useConverterStore((s) => s.addFiles)
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    setIsDragging(true)
-  }, [])
+    if (!isDragging) {
+      setIsDragging(true)
+      setDragCount(e.dataTransfer.items.length)
+    }
+  }, [isDragging])
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
     setIsDragging(false)
+    setDragCount(0)
   }, [])
 
   const handleDrop = useCallback(
@@ -23,6 +36,7 @@ export function DropZone(): React.ReactElement {
       e.preventDefault()
       e.stopPropagation()
       setIsDragging(false)
+      setDragCount(0)
 
       const paths: string[] = []
       const files = e.dataTransfer.files
@@ -53,7 +67,7 @@ export function DropZone(): React.ReactElement {
         h-full min-h-[400px]
         border-2 border-dashed rounded-2xl
         transition-all duration-200 cursor-pointer
-        ${isDragging ? 'border-accent bg-accent/5 scale-[1.01]' : 'border-border hover:border-border-hover'}
+        ${isDragging ? 'border-accent bg-accent/5 scale-[1.01] animate-pulse-subtle' : 'border-border hover:border-border-hover'}
       `}
       onClick={handleBrowse}
     >
@@ -69,18 +83,23 @@ export function DropZone(): React.ReactElement {
 
       <div className="text-center">
         <p className="text-lg font-medium text-gray-200">
-          {isDragging ? 'Drop files here' : 'Drag & drop files here'}
+          {isDragging
+            ? dragCount > 1
+              ? `Drop ${dragCount} files here`
+              : 'Drop file here'
+            : 'Drag & drop files here'}
         </p>
         <p className="text-sm text-gray-500 mt-1">or click to browse</p>
       </div>
 
-      <div className="flex flex-wrap gap-2 justify-center max-w-md px-4">
-        {['Video', 'Audio', 'Images', 'Documents', 'Data'].map((type) => (
+      <div className="flex flex-wrap gap-2 justify-center max-w-lg px-4">
+        {Object.entries(FORMAT_EXAMPLES).map(([type, formats]) => (
           <span
             key={type}
-            className="px-3 py-1 text-xs rounded-full bg-bg-tertiary text-gray-400 border border-border"
+            className="px-3 py-1.5 text-xs rounded-full bg-bg-tertiary text-gray-400 border border-border flex flex-col items-center"
           >
-            {type}
+            <span className="font-medium text-gray-300">{type}</span>
+            <span className="text-[10px] text-gray-500">{formats}</span>
           </span>
         ))}
       </div>

@@ -1,4 +1,4 @@
-name: Build
+name: Build & Release
 
 on:
   push:
@@ -22,14 +22,16 @@ jobs:
 
       - run: npm ci
 
-      - run: npm run package
+      - run: npm run package:win
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/upload-artifact@v4
         with:
           name: windows
-          path: dist/*.exe
+          path: |
+            dist/*.exe
+            dist/*.exe.blockmap
 
   build-mac:
     runs-on: macos-latest
@@ -43,7 +45,7 @@ jobs:
 
       - run: npm ci
 
-      - run: npm run package
+      - run: npm run package:mac
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -52,23 +54,22 @@ jobs:
           name: mac
           path: dist/*.dmg
 
-  build-linux:
+  release:
+    needs: [build-windows, build-mac]
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      - uses: actions/download-artifact@v4
         with:
-          node-version: 20
-          cache: npm
+          path: artifacts
 
-      - run: npm ci
-
-      - run: npm run package
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: false
+          generate_release_notes: true
+          files: |
+            artifacts/windows/*.exe
+            artifacts/mac/*.dmg
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: linux
-          path: dist/*.AppImage
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

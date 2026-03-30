@@ -4,10 +4,33 @@ import { convertImage, getImageThumbnail } from './image'
 import { convertDocument, getDocumentPreview } from './document'
 import { convertData, getDataPreview } from './data'
 
-const VIDEO_EXTS = ['mp4', 'avi', 'mov', 'mkv', 'webm']
-const AUDIO_EXTS = ['mp3', 'wav', 'flac', 'aac', 'ogg', 'm4a']
-const IMAGE_EXTS = ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff', 'webp', 'avif']
-const DOC_EXTS = ['docx', 'pdf', 'txt', 'html', 'md']
+const VIDEO_EXTS = [
+  'mp4', 'avi', 'mov', 'mkv', 'webm', 'm4v', 'mpeg', 'mpg', 'wmv', 'ts',
+  'ogv', 'av1', '3gp', 'divx', 'mjpeg', 'vob', 'flv', 'mts', 'mxf', '3g2',
+  'asf', 'xvid', 'rmvb', 'f4v', 'm2v', 'm2ts', 'rm', 'wtv', 'hevc', 'swf'
+]
+const AUDIO_EXTS = [
+  'mp3', 'wav', 'flac', 'aac', 'ogg', 'm4a', 'm4r', 'wma', 'opus', 'mp2',
+  'aiff', 'aif', 'amr', '8svx', 'au', 'ac3', 'dts', 'caf', 'oga', 'voc',
+  'avr', 'wv', 'snd', 'spx', 'amb', 'w64', 'tta', 'gsm',
+  'cdda', 'cvs', 'vms', 'smp', 'ima', 'hcom', 'vox', 'ra', 'wve',
+  'cvu', 'txw', 'fap', 'sou', 'cvsd', 'sln', 'prc', 'pvf', 'paf',
+  'dvms', 'sph', 'sd2', 'maud', 'sndr', 'sndt', 'fssd', 'gsrt', 'htk',
+  'ircam', 'nist'
+]
+const IMAGE_EXTS = [
+  'png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff', 'webp', 'avif',
+  'heic', 'heif', 'jp2', 'jfif', 'jpe', 'jfi',
+  'exr', 'xbm', 'xpm', 'pgm', 'ppm', 'pnm', 'pbm', 'pam',
+  'pcx', 'tga', 'sgi', 'ras', 'sun', 'pict', 'pct', 'pcd',
+  'pfm', 'xwd', 'mng', 'yuv', 'uyvy', 'rgbo', 'rgba',
+  'g3', 'g4', 'palm', 'mtv', 'viff', 'xv', 'ipl', 'hrz',
+  'jps', 'pgx', 'picon', 'wbmp', 'jbg', 'jbig', 'map',
+  'six', 'sixel', 'fax', 'otb', 'rgf', 'vips', 'fts',
+  'pal', 'pdb',
+  'svg', 'ai', 'eps', 'ps', 'plt', 'emf', 'wmf', 'sk', 'fig', 'cgm', 'sk1'
+]
+const DOC_EXTS = ['docx', 'doc', 'docm', 'dotx', 'dotm', 'dot', 'pdf', 'txt', 'html', 'md', 'rtf', 'odt', 'sxw', 'xps', 'djvu', 'aw', 'kwd', 'dbk']
 const DATA_EXTS = ['csv', 'json', 'xml', 'yaml', 'yml']
 
 type ConverterCategory = 'video' | 'audio' | 'image' | 'document' | 'data'

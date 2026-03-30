@@ -4,6 +4,12 @@ import { getFileCategory } from '../types'
 
 type View = 'converter' | 'history'
 
+interface Toast {
+  id: string
+  message: string
+  type: 'success' | 'error' | 'info'
+}
+
 interface ConverterState {
   view: View
   files: FileEntry[]
@@ -13,6 +19,7 @@ interface ConverterState {
   history: HistoryEntry[]
   previewFile: FileEntry | null
   previewData: PreviewData | null
+  toasts: Toast[]
 
   setView: (view: View) => void
   addFiles: (paths: string[]) => void
@@ -28,6 +35,8 @@ interface ConverterState {
   setPreviewFile: (file: FileEntry | null) => void
   setPreviewData: (data: PreviewData | null) => void
   getFilesCategory: () => FileCategory | 'mixed' | null
+  addToast: (message: string, type: 'success' | 'error' | 'info') => void
+  removeToast: (id: string) => void
 }
 
 let fileCounter = 0
@@ -51,37 +60,49 @@ export const useConverterStore = create<ConverterState>((set, get) => ({
   history: [],
   previewFile: null,
   previewData: null,
+  toasts: [],
 
   setView: (view) => set({ view }),
 
-  addFiles: (paths) => {
-    const newFiles: FileEntry[] = paths
+  addFiles: async (paths) => {
+    const validPaths = paths
       .filter((p) => {
         const ext = getExtension(p.split(/[\\/]/).pop() || '')
         return getFileCategory(ext) !== null
       })
       .filter((p) => !get().files.some((f) => f.path === p))
-      .map((p) => {
-        const name = p.split(/[\\/]/).pop() || p
-        const ext = getExtension(name)
-        const category = getFileCategory(ext) || 'data'
-        return {
-          id: generateId(),
-          name,
-          path: p,
-          size: 0,
-          category,
-          extension: ext,
-          progress: 0,
-          status: 'pending' as const
-        }
-      })
 
-    if (newFiles.length > 0) {
-      set((state) => ({
-        files: [...state.files, ...newFiles]
-      }))
+    if (validPaths.length === 0) return
+
+    let statsMap: Record<string, number> = {}
+    try {
+      const stats = await window.api.getFileStats(validPaths)
+      for (const s of stats) {
+        statsMap[s.path] = s.size
+      }
+    } catch {
+      // fall back to 0
     }
+
+    const newFiles: FileEntry[] = validPaths.map((p) => {
+      const name = p.split(/[\\/]/).pop() || p
+      const ext = getExtension(name)
+      const category = getFileCategory(ext) || 'data'
+      return {
+        id: generateId(),
+        name,
+        path: p,
+        size: statsMap[p] || 0,
+        category,
+        extension: ext,
+        progress: 0,
+        status: 'pending' as const
+      }
+    })
+
+    set((state) => ({
+      files: [...state.files, ...newFiles]
+    }))
   },
 
   removeFile: (id) =>
@@ -124,7 +145,7 @@ export const useConverterStore = create<ConverterState>((set, get) => ({
       name: f.name
     }))
 
-    const effectiveOutputDir = outputDir || files[0].path.split(/[\\/]/).slice(0, -1).join('\\')
+    const effectiveOutputDir = outputDir || files[0].path.replace(/[\\/][^\\/]+$/, '')
 
     window.api.convertStart({
       files: convertableFiles,
@@ -137,6 +158,16 @@ export const useConverterStore = create<ConverterState>((set, get) => ({
   clearHistory: () => set({ history: [] }),
   setPreviewFile: (file) => set({ previewFile: file }),
   setPreviewData: (data) => set({ previewData: data }),
+
+  addToast: (message, type) =>
+    set((state) => ({
+      toasts: [...state.toasts, { id: `toast_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`, message, type }]
+    })),
+
+  removeToast: (id) =>
+    set((state) => ({
+      toasts: state.toasts.filter((t) => t.id !== id)
+    })),
 
   getFilesCategory: () => {
     const { files } = get()

@@ -1,6 +1,11 @@
 import { contextBridge, ipcRenderer } from 'electron'
 
 contextBridge.exposeInMainWorld('api', {
+  platform: process.platform,
+  windowMinimize: () => ipcRenderer.invoke('window:minimize'),
+  windowMaximize: () => ipcRenderer.invoke('window:maximize'),
+  windowClose: () => ipcRenderer.invoke('window:close'),
+
   convertStart: (request: {
     files: Array<{ id: string; path: string; name: string }>
     outputFormat: string
@@ -33,5 +38,8 @@ contextBridge.exposeInMainWorld('api', {
   historyClear: () => ipcRenderer.invoke('history:clear'),
   dialogOpenFiles: () => ipcRenderer.invoke('dialog:openFiles'),
   dialogOpenDir: () => ipcRenderer.invoke('dialog:openDir'),
-  getPreview: (filePath: string) => ipcRenderer.invoke('preview:get', filePath)
+  getPreview: (filePath: string) => ipcRenderer.invoke('preview:get', filePath),
+  getFileStats: (paths: string[]) => ipcRenderer.invoke('files:getStats', paths),
+  openFile: (path: string) => ipcRenderer.invoke('shell:openFile', path),
+  showInFolder: (path: string) => ipcRenderer.invoke('shell:showInFolder', path)
 })

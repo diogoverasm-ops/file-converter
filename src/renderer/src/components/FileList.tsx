@@ -12,7 +12,9 @@ import {
   Trash2,
   CheckCircle2,
   AlertCircle,
-  Loader2
+  Loader2,
+  ExternalLink,
+  FolderOpen
 } from 'lucide-react'
 import { useConverterStore } from '../store/converterStore'
 import type { FileEntry, FileCategory } from '../types'
@@ -181,6 +183,24 @@ export function FileList(): React.ReactElement {
             </div>
 
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              {file.status === 'done' && file.outputPath && (
+                <>
+                  <button
+                    onClick={() => window.api.openFile(file.outputPath!)}
+                    className="p-1.5 text-gray-400 hover:text-green-400 hover:bg-bg-tertiary rounded-md transition-colors"
+                    title="Open file"
+                  >
+                    <ExternalLink size={14} />
+                  </button>
+                  <button
+                    onClick={() => window.api.showInFolder(file.outputPath!)}
+                    className="p-1.5 text-gray-400 hover:text-green-400 hover:bg-bg-tertiary rounded-md transition-colors"
+                    title="Show in folder"
+                  >
+                    <FolderOpen size={14} />
+                  </button>
+                </>
+              )}
               <button
                 onClick={() => handlePreview(file)}
                 className="p-1.5 text-gray-400 hover:text-white hover:bg-bg-tertiary rounded-md transition-colors"

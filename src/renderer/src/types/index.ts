@@ -53,18 +53,60 @@ export type OutputFormatMap = {
 }
 
 export const OUTPUT_FORMATS: OutputFormatMap = {
-  video: ['mp4', 'webm', 'avi', 'mkv'],
-  audio: ['mp3', 'wav', 'flac', 'aac', 'ogg', 'm4a'],
-  image: ['png', 'jpg', 'webp', 'gif', 'bmp', 'tiff', 'avif'],
-  document: ['pdf', 'txt', 'html', 'md'],
+  video: [
+    'mp4', 'webm', 'avi', 'mkv', 'mov', 'm4v', 'wmv', 'flv', 'ts', 'ogv',
+    '3gp', '3g2', 'hevc', 'mpeg', 'asf', 'mxf', 'vob', 'm2ts', 'mts',
+    'f4v', 'divx', 'xvid', 'av1', 'm2v', 'wtv'
+  ],
+  audio: [
+    'mp3', 'wav', 'flac', 'aac', 'ogg', 'm4a', 'm4r', 'wma', 'opus', 'mp2',
+    'aiff', 'aif', 'amr', 'au', 'ac3', 'dts', 'caf', 'oga', 'voc',
+    'avr', 'wv', 'snd', 'spx', 'amb', 'w64', 'tta', 'gsm', 'ircam'
+  ],
+  image: [
+    'png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp', 'tiff', 'avif',
+    'heic', 'heif', 'jp2', 'jfif', 'jpe', 'jfi',
+    'exr', 'xbm', 'xpm', 'pgm', 'ppm', 'pnm', 'pbm', 'pam',
+    'pcx', 'tga', 'sgi', 'ras', 'sun', 'pict', 'pct', 'pcd',
+    'pfm', 'xwd', 'mng', 'yuv', 'uyvy', 'rgbo', 'rgba',
+    'g3', 'g4', 'palm', 'mtv', 'viff', 'xv', 'ipl', 'hrz',
+    'jps', 'pgx', 'picon', 'wbmp', 'jbg', 'jbig', 'map',
+    'six', 'sixel', 'fax', 'otb', 'rgf', 'vips', 'fts',
+    'pfm', 'pal', 'pat', 'pdb',
+    'svg', 'ai', 'eps', 'ps', 'plt', 'emf', 'wmf', 'sk', 'fig', 'cgm', 'sk1'
+  ],
+  document: ['pdf', 'txt', 'html', 'md', 'rtf'],
   data: ['csv', 'json', 'xml', 'yaml']
 }
 
 export const CATEGORY_EXTENSIONS: Record<FileCategory, string[]> = {
-  video: ['mp4', 'avi', 'mov', 'mkv', 'webm'],
-  audio: ['mp3', 'wav', 'flac', 'aac', 'ogg', 'm4a'],
-  image: ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff', 'webp', 'avif'],
-  document: ['docx', 'pdf', 'txt', 'html', 'md'],
+  video: [
+    'mp4', 'avi', 'mov', 'mkv', 'webm', 'm4v', 'mpeg', 'mpg', 'wmv', 'ts',
+    'ogv', 'av1', '3gp', 'divx', 'mjpeg', 'vob', 'flv', 'mts', 'mxf', '3g2',
+    'asf', 'xvid', 'rmvb', 'f4v', 'm2v', 'm2ts', 'rm', 'wtv', 'hevc', 'swf'
+  ],
+  audio: [
+    'mp3', 'wav', 'flac', 'aac', 'ogg', 'm4a', 'm4r', 'wma', 'opus', 'mp2',
+    'aiff', 'aif', 'amr', '8svx', 'au', 'ac3', 'dts', 'caf', 'oga', 'voc',
+    'avr', 'wv', 'snd', 'spx', 'amb', 'w64', 'tta', 'gsm',
+    'cdda', 'cvs', 'vms', 'smp', 'ima', 'hcom', 'vox', 'ra', 'wve',
+    'cvu', 'txw', 'fap', 'sou', 'cvsd', 'sln', 'prc', 'pvf', 'paf',
+    'dvms', 'sph', 'sd2', 'maud', 'sndr', 'sndt', 'fssd', 'gsrt', 'htk',
+    'ircam', 'nist'
+  ],
+  image: [
+    'png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff', 'webp', 'avif',
+    'heic', 'heif', 'jp2', 'jfif', 'jpe', 'jfi',
+    'exr', 'xbm', 'xpm', 'pgm', 'ppm', 'pnm', 'pbm', 'pam',
+    'pcx', 'tga', 'sgi', 'ras', 'sun', 'pict', 'pct', 'pcd',
+    'pfm', 'xwd', 'mng', 'yuv', 'uyvy', 'rgbo', 'rgba',
+    'g3', 'g4', 'palm', 'mtv', 'viff', 'xv', 'ipl', 'hrz',
+    'jps', 'pgx', 'picon', 'wbmp', 'jbg', 'jbig', 'map',
+    'six', 'sixel', 'fax', 'otb', 'rgf', 'vips', 'fts',
+    'pal', 'pdb',
+    'svg', 'ai', 'eps', 'ps', 'plt', 'emf', 'wmf', 'sk', 'fig', 'cgm', 'sk1'
+  ],
+  document: ['docx', 'doc', 'docm', 'dotx', 'dotm', 'dot', 'pdf', 'txt', 'html', 'md', 'rtf', 'odt', 'sxw', 'xps', 'djvu', 'aw', 'kwd', 'dotm', 'dbk'],
   data: ['csv', 'json', 'xml', 'yaml', 'yml']
 }
 
@@ -89,6 +131,10 @@ export function formatFileSize(bytes: number): string {
 declare global {
   interface Window {
     api: {
+      platform: string
+      windowMinimize: () => Promise<void>
+      windowMaximize: () => Promise<void>
+      windowClose: () => Promise<void>
       convertStart: (request: ConversionRequest) => Promise<void>
       onConvertProgress: (callback: (data: { fileId: string; percent: number }) => void) => () => void
       onConvertDone: (callback: (result: ConversionResult) => void) => () => void
@@ -97,6 +143,9 @@ declare global {
       dialogOpenFiles: () => Promise<string[]>
       dialogOpenDir: () => Promise<string | null>
       getPreview: (filePath: string) => Promise<PreviewData | null>
+      getFileStats: (paths: string[]) => Promise<Array<{ path: string; size: number }>>
+      openFile: (path: string) => Promise<void>
+      showInFolder: (path: string) => Promise<void>
     }
   }
 }

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { X, Film, Music, FileText, Database, Image as ImageIcon } from 'lucide-react'
 import { useConverterStore } from '../store/converterStore'
 
@@ -7,6 +7,18 @@ export function Preview(): React.ReactElement | null {
   const previewData = useConverterStore((s) => s.previewData)
   const setPreviewFile = useConverterStore((s) => s.setPreviewFile)
   const setPreviewData = useConverterStore((s) => s.setPreviewData)
+
+  useEffect(() => {
+    if (!previewFile) return
+    const handler = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') {
+        setPreviewFile(null)
+        setPreviewData(null)
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [previewFile, setPreviewFile, setPreviewData])
 
   if (!previewFile) return null
 

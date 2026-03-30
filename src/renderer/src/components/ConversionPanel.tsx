@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback, useEffect, useMemo } from 'react'
 import { FolderOpen, Play, Loader2, CheckCircle2 } from 'lucide-react'
 import { useConverterStore } from '../store/converterStore'
 import { OUTPUT_FORMATS } from '../types'
@@ -19,12 +19,23 @@ export function ConversionPanel(): React.ReactElement {
   const errorCount = files.filter((f) => f.status === 'error').length
   const allDone = files.length > 0 && doneCount + errorCount === files.length
 
+  const inputExtensions = useMemo(
+    () => new Set(files.map((f) => f.extension.toLowerCase())),
+    [files]
+  )
+
   const availableFormats = useMemo(() => {
-    if (!category || category === 'mixed') {
-      return Object.values(OUTPUT_FORMATS).flat()
+    const formats = !category || category === 'mixed'
+      ? Object.values(OUTPUT_FORMATS).flat()
+      : OUTPUT_FORMATS[category as FileCategory] || []
+    return formats.filter((fmt) => !inputExtensions.has(fmt.toLowerCase()))
+  }, [category, inputExtensions])
+
+  useEffect(() => {
+    if (outputFormat && inputExtensions.has(outputFormat.toLowerCase())) {
+      setOutputFormat('')
     }
-    return OUTPUT_FORMATS[category as FileCategory] || []
-  }, [category])
+  }, [inputExtensions, outputFormat, setOutputFormat])
 
   const handleSelectDir = useCallback(async () => {
     const dir = await window.api.dialogOpenDir()
@@ -66,7 +77,7 @@ export function ConversionPanel(): React.ReactElement {
                     disabled:opacity-50
                   `}
                 >
-                  .{fmt}
+                  .{fmt.toUpperCase()}
                 </button>
               ))}
             </div>
@@ -83,7 +94,7 @@ export function ConversionPanel(): React.ReactElement {
                 <option value="">Select format...</option>
                 {availableFormats.map((fmt) => (
                   <option key={fmt} value={fmt}>
-                    .{fmt}
+                    .{fmt.toUpperCase()}
                   </option>
                 ))}
               </select>
@@ -110,6 +121,24 @@ export function ConversionPanel(): React.ReactElement {
           </button>
         </div>
 
+        {/* Overall Progress */}
+        {isConverting && files.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex justify-between text-xs">
+              <span className="text-gray-400">Overall Progress</span>
+              <span className="text-gray-300">
+                {Math.round(files.reduce((sum, f) => sum + f.progress, 0) / files.length)}%
+              </span>
+            </div>
+            <div className="h-2 bg-bg-primary rounded-full overflow-hidden">
+              <div
+                className="h-full bg-accent rounded-full transition-all duration-300"
+                style={{ width: `${files.reduce((sum, f) => sum + f.progress, 0) / files.length}%` }}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Summary */}
         {files.length > 0 && (
           <div className="p-3 bg-bg-tertiary rounded-xl border border-border space-y-2">
@@ -120,7 +149,7 @@ export function ConversionPanel(): React.ReactElement {
             {outputFormat && (
               <div className="flex justify-between text-xs">
                 <span className="text-gray-500">Output</span>
-                <span className="text-accent font-mono">.{outputFormat}</span>
+                <span className="text-accent font-mono">.{outputFormat.toUpperCase()}</span>
               </div>
             )}
             {isConverting && (
