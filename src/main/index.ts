@@ -49,7 +49,7 @@ function createWindow(): void {
     minWidth: 900,
     minHeight: 600,
     backgroundColor: '#0f0f0f',
-    icon: join(__dirname, '../../resources/icon.png'),
+    icon: join(__dirname, '../../resources/icon-512.png'),
     titleBarStyle: 'hiddenInset',
     frame: false,
     webPreferences: {

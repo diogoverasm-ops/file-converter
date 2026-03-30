@@ -61,7 +61,7 @@
     ],
     "extraResources": [
       {
-        "from": "resources/icon.png",
+        "from": "resources/icon-512.png",
         "to": "icon.png"
       }
     ],
@@ -69,10 +69,10 @@
       "node_modules/@ffmpeg-installer/**/*",
       "node_modules/sharp/**/*"
     ],
-    "icon": "resources/icon.png",
+    "icon": "resources/icon-512.png",
     "win": {
       "target": "nsis",
-      "icon": "resources/icon.png"
+      "icon": "resources/icon-512.png"
     },
     "mac": {
       "target": [
