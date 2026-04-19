@@ -1,0 +1,18 @@
+# Render.com Blueprint — one-click deploy of the mobile PWA + YouTube backend.
+# After Render imports this file it provisions a single free web service that
+# builds the Vite/React PWA in `mobile/` and serves it together with the
+# Express API (file conversion happens in the browser; the API only handles
+# YouTube downloads).
+services:
+  - type: web
+    name: file-converter-mobile
+    runtime: node
+    plan: free
+    rootDir: mobile
+    buildCommand: npm install && npm run build
+    startCommand: node server/index.js
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
