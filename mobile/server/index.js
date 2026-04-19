@@ -16,6 +16,25 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const PORT = Number(process.env.PORT || 8787)
 const DIST_DIR = resolve(__dirname, '..', 'dist')
 
+// Optional cookie agent — required when running on cloud IPs (Render, Fly,
+// AWS, etc.) because YouTube aggressively rate-limits/blocks datacenter
+// addresses with HTTP 429. Set YT_COOKIES to the JSON array exported by a
+// browser cookie extension while logged into youtube.com.
+const ytAgent = (() => {
+  const raw = process.env.YT_COOKIES
+  if (!raw) return undefined
+  try {
+    const cookies = JSON.parse(raw)
+    if (!Array.isArray(cookies) || cookies.length === 0) return undefined
+    console.log(`Loaded ${cookies.length} YouTube cookies for ytdl agent`)
+    return ytdl.createAgent(cookies)
+  } catch (err) {
+    console.warn('YT_COOKIES is not valid JSON, ignoring:', err?.message)
+    return undefined
+  }
+})()
+const ytdlOptions = ytAgent ? { agent: ytAgent } : undefined
+
 const app = express()
 app.use(cors())
 app.disable('x-powered-by')
@@ -45,7 +64,7 @@ app.get('/api/youtube/info', async (req, res) => {
     return res.status(400).json({ error: 'Invalid YouTube URL' })
   }
   try {
-    const info = await ytdl.getInfo(url)
+    const info = await ytdl.getInfo(url, ytdlOptions)
     const details = info.videoDetails
     const thumbs = details.thumbnails || []
     res.json({
@@ -69,7 +88,7 @@ app.get('/api/youtube/download', async (req, res) => {
 
   let info
   try {
-    info = await ytdl.getInfo(url)
+    info = await ytdl.getInfo(url, ytdlOptions)
   } catch (err) {
     return res.status(500).type('text/plain').send(err?.message || 'Failed to load video')
   }
@@ -89,7 +108,7 @@ app.get('/api/youtube/download', async (req, res) => {
       ? { quality: 'highestaudio', filter: 'audioonly' }
       : { quality: 'highest', filter: (f) => f.hasVideo && f.hasAudio }
 
-  const stream = ytdl.downloadFromInfo(info, filterOptions)
+  const stream = ytdl.downloadFromInfo(info, { ...filterOptions, ...ytdlOptions })
 
   stream.on('error', (err) => {
     if (!res.headersSent) {
